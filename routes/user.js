@@ -1,40 +1,17 @@
-const jwt = require("jsonwebtoken")
-const catchAsyncErrors = require("../middlewares/catchAsyncErrors")
-const ErrorHandler = require("../utils/errorHandler")
-const db = require("../config/database")
+const express = require("express")
+const router = express.Router()
+//export methods
+const { getUsers } = require("../controllers/userController")
+//export authentication
+//qwerty
 
-// Check if the user is authenticated or not
-exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
-   let token
+//getUser
+router.route("/getUsers").get(getUsers)
+//getUserUsername
+//getUserEmail
+//toggleUserStatus
+//updateUserGroup
+//updateUserEmail
+//updateUserPassword
 
-   if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer")
-   ) {
-      token = req.headers.authorization.split(" ")[1]
-   }
-
-   if (!token) {
-      return next(new ErrorHandler("Login first to access this resource.", 401))
-   }
-
-   const decoded = jwt.verify(token, process.env.JWT_SECRET)
-   req.user = await User.findById(decoded.id)
-
-   next()
-})
-
-// handling users roles
-exports.authorizeRoles = (...roles) => {
-   return (req, res, next) => {
-      if (!roles.includes(req.user.role)) {
-         return next(
-            new ErrorHandler(
-               `Role(${req.user.role}) is not allowed to access this resource.`,
-               403
-            )
-         )
-      }
-      next()
-   }
-}
+module.exports = router

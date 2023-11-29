@@ -1,4 +1,5 @@
 //the jobs controller will have all the methods for the jobs router and we define all the routes defination in a separate method
+//this is the job example
 
 const ErrorHandler = require("../utils/errorHandler")
 //later wrap the async functions

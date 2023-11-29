@@ -3,7 +3,7 @@ const app = express()
 
 const dotenv = require("dotenv")
 
-const connectDatabase = require("./config/database.js")
+const db = require("./config/database")
 const errorMiddleware = require("./middlewares/errors")
 const ErrorHandler = require("./utils/errorHandler")
 
@@ -32,10 +32,12 @@ app.use(middleware)
 
 //Importing all routes
 const jobs = require("./routes/jobs")
-const jobs = require("./routes/auth")
-
+const auth = require("./routes/auth")
+const user = require("./routes/user")
+//Mounting routes
 app.use("/api/v1", jobs)
 app.use("/api/v1", auth)
+app.use("/api/v1", user)
 
 //handle unhandled routes
 app.all("*", (req, res, next) => {
@@ -61,3 +63,9 @@ process.on("unhandledRejection", err => {
       process.exit(1)
    })
 })
+
+// Attempt a test query to check if the database is connected
+db.promise()
+   .query("SELECT 1")
+   .then(() => console.log("Database connected successfully"))
+   .catch(err => console.error("Database connection error:", err))
