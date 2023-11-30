@@ -10,6 +10,12 @@ const ErrorHandler = require("./utils/errorHandler")
 //Setting up config.env file variables
 dotenv.config({ path: "./config/config.env" })
 
+// Attempt a test query to check if the database is connected
+db.promise()
+  .query("SELECT 1")
+  .then(() => {
+    console.log("Database connected successfully");
+
 //Handling uncalled exception (at the top so that it can handle all exceptions)
 process.on("uncaughtException", err => {
    console.log(`Error: ${err.message}`)
