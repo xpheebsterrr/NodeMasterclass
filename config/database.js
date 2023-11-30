@@ -1,4 +1,7 @@
 const mysql = require("mysql2")
+const dotenv = require("dotenv")
+//Setting up config.env file variables
+dotenv.config({ path: "./config/config.env" })
 
 const db = mysql.createPool({
    host: process.env.DB_HOST,
@@ -7,19 +10,9 @@ const db = mysql.createPool({
    database: process.env.DB_DATABASE,
    connectionLimit: 10
 })
-if (db)
-   console.log(`MySQL Database connected with host: ${process.env.DB_HOST}`)
 //Event listener for pool errors
 db.on("error", err => {
    console.error("MySQL Pool Error:", err)
 })
 
 module.exports = db
-
-//example query from sql
-// pool.query(`select * from registration`, (err, result, fields) => {
-//    if (err) {
-//       return console.log(err)
-//    }
-//    return console.log(result)
-// })
