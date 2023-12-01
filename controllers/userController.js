@@ -4,7 +4,6 @@ const ErrorHandler = require("../utils/errorHandler")
 const catchAsyncErrors = require("../middlewares/catchAsyncErrors")
 const db = require("../config/database")
 const bcrypt = require("bcrypt")
-const { hashPassword } = require("../utils/passwordUtils")
 const saltRounds = 10 //number of salt rounds for bcrypt hashing
 
 // Get all Users  =>  /api/v1/getUsers (named as api for clarity)

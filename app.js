@@ -1,6 +1,9 @@
 const express = require("express")
 const app = express()
-
+//cross-origin request sharing allows you to make requests to the server deployed at a different domain, eg. front end port to back end port
+const cors = require("cors")
+app.use(cors())
+//secretive files for security
 const dotenv = require("dotenv")
 
 const db = require("./config/database")
@@ -68,3 +71,8 @@ process.on("unhandledRejection", err => {
       process.exit(1)
    })
 })
+
+// // Generating JWT token
+// const crypto = require("crypto")
+// const secret = crypto.randomBytes(64).toString("hex")
+// console.log("secret", secret) // This will be your JWT_SECRET

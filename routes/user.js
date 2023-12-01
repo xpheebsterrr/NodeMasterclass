@@ -9,6 +9,7 @@ const {
    updateUserPassword,
    updateUser
 } = require("../controllers/userController")
+const { createGroup } = require("../controllers/groupController")
 
 //For Admins
 //getUser
@@ -19,6 +20,8 @@ router.route("/createUser").post(createUser)
 router.route("/users/:username/toggle-status").put(toggleIsActive)
 //updateUser (all fields)
 router.route("/users/:username").put(updateUser)
+//createGroup
+router.route("/createGroup").post(createGroup)
 
 //For Users
 //updateUserEmail
