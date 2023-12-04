@@ -42,11 +42,13 @@ const middleware = (req, res, next) => {
 app.use(middleware)
 
 //Importing all routes
-const auth = require("./routes/auth")
-const user = require("./routes/user")
+// const auth = require("./routes/auth")
+// const user = require("./routes/user")
+const routes = require("./routes/router")
 //Mounting routes
-app.use("/api/v1", auth)
-app.use("/api/v1", user)
+// app.use("/api/v1", auth)
+// app.use("/api/v1", user)
+app.use("/api/v1", routes)
 
 //handle unhandled routes
 app.all("*", (req, res, next) => {

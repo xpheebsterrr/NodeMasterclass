@@ -48,6 +48,8 @@ router.route("/users/:username/email").put(isAuthenticated, updateUserEmail)
 router
    .route("/users/:username/password")
    .put(isAuthenticated, updateUserPassword)
+
+//Specs
 //Group functions
 router.route("/checkGroup").post(isAuthenticated, checkGroup)
 
