@@ -18,7 +18,7 @@ exports.getUsers = catchAsyncErrors(async (req, res, next) => {
 
 // Create User  =>  /api/v1/CreateUser
 exports.createUser = catchAsyncErrors(async (req, res, next) => {
-   const { username, password, email, groupname } = req.body
+   const { username, password, email, groupnames } = req.body
    //password complexity check
    const passwordRegex =
       /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&()])[A-Za-z\d@$!%*?&()]{8,10}$/
@@ -35,8 +35,8 @@ exports.createUser = catchAsyncErrors(async (req, res, next) => {
    const result = await db
       .promise()
       .query(
-         "INSERT INTO accounts (username, password, email, groupname) VALUES (?, ?, ?, ?)",
-         [username, hashedPassword, email, groupname]
+         "INSERT INTO accounts (username, password, email, groupnames) VALUES (?, ?, ?, ?)",
+         [username, hashedPassword, email, groupnames]
       )
 
    // Retrieve the newly created user
@@ -75,7 +75,7 @@ exports.toggleIsActive = catchAsyncErrors(async (req, res, next) => {
 
 // Update User  =>  /api/v1/updateUser
 exports.updateUser = catchAsyncErrors(async (req, res, next) => {
-   const { username, email, password, groupname } = req.body
+   const { username, email, password, groupnames } = req.body
    // Password complexity check and hashing
    let hashedPassword
    if (password) {
@@ -94,14 +94,14 @@ exports.updateUser = catchAsyncErrors(async (req, res, next) => {
    await db
       .promise()
       .query(
-         "UPDATE accounts SET email = ?, password = ?, groupname = ? WHERE username = ?",
-         [email, hashedPassword, groupname, username]
+         "UPDATE accounts SET email = ?, password = ?, groupnames = ? WHERE username = ?",
+         [email, hashedPassword, groupnames, username]
       )
    res.json({
       success: true,
       message: "User updated successfully",
       //avoid returning password info for secure coding
-      data: { username, email, password, groupname }
+      data: { username, email, password, groupnames }
    })
 })
 

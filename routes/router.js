@@ -9,12 +9,13 @@ const {
    updateUserPassword,
    updateUser
 } = require("../controllers/userController")
-const { createGroup } = require("../controllers/groupController")
+const { createGroup, checkGroup } = require("../controllers/groupController")
 const {
    protectedAdmin,
    isAuthenticated,
    isAuthorised
 } = require("../middlewares/protectedroutes")
+const { loginUser, logoutUser } = require("../controllers/authController")
 
 //For Admins
 //getUsers
@@ -37,11 +38,17 @@ router
    .post(isAuthenticated, isAuthorised("admin"), createGroup)
 
 //For Users
+//login User
+router.route("/loginUser").get(loginUser)
+//logout User
+router.route("/logoutUser").get(isAuthenticated, logoutUser)
 //updateUserEmail
 router.route("/users/:username/email").put(isAuthenticated, updateUserEmail)
 //updateUserPassword
 router
    .route("/users/:username/password")
    .put(isAuthenticated, updateUserPassword)
+//Group functions
+router.route("/checkGroup").post(isAuthenticated, checkGroup)
 
 module.exports = router

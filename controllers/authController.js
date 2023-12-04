@@ -34,9 +34,13 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
       return next(new ErrorHandler("Incorrect password", 401))
    }
    //Create JWT token
-   const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN
-   })
+   const token = jwt.sign(
+      { username: user.username, groupnames: user.groupnames },
+      process.env.JWT_SECRET,
+      {
+         expiresIn: process.env.JWT_EXPIRES_IN
+      }
+   )
    // Set cookie options
    const cookieOptions = {
       expiresIn: new Date(
@@ -44,24 +48,26 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
       ),
       httpOnly: true, // The cookie is not accessible to client-side scripts
       secure: req.secure || req.headers["x-forwarded-proto"] === "https", // Use secure flag on production
+      // secure: process.env.NODE_ENV === 'production', // set to true if https is used
       sameSite: "strict" // Mitigate the risk of CSRF attack
    }
    //Send token in cookie
-   res.cookie("jwt", token, cookieOptions),
-      //remove password from output
-      (user.password = undefined),
-      res.status(200).json({
-         success: true,
-         message: "Logged in successfully",
-         user,
-         token
-      })
+   //res.cookie(name, value, [options])
+   res.cookie("access_token", token, cookieOptions)
+   //remove password from output
+   user.password = undefined
+   res.status(200).json({
+      success: true,
+      message: "Logged in successfully",
+      user,
+      token
+   })
 })
 
 exports.logoutUser = catchAsyncErrors(async (req, res, next) => {
    // Set cookie to none and expire it
-   res.cookie("jwt", "none", {
-      expiresIn: new Date(Date.now() + 10 * 1000), // Expire in 10 seconds
+   res.cookie("access_token", "none", {
+      expiresIn: new Date(Date.now() + 3 * 1000), // Expire in 3 seconds
       httpOnly: true,
       secure: req.secure || req.headers["x-forwarded-proto"] === "https",
       sameSite: "strict"

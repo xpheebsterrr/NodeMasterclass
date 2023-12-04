@@ -5,7 +5,8 @@ const cors = require("cors")
 app.use(cors())
 //secretive files for security
 const dotenv = require("dotenv")
-
+const cookieParser = require("cookie-parser")
+app.use(cookieParser())
 const db = require("./config/database")
 const errorMiddleware = require("./middlewares/errors")
 const ErrorHandler = require("./utils/errorHandler")

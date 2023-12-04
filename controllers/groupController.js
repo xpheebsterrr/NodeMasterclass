@@ -4,13 +4,13 @@ const db = require("../config/database")
 
 //Checkgroup function that returns a value to indicate if a user is in the group =>  /api/v1/checkGroup
 exports.checkGroup = catchAsyncErrors(async (req, res, next) => {
-   const { username, groupname } = req.body
+   const { username, groupnames } = req.body
    //If a matching row is found, 1 is returned; if not, the query returns an empty result set.
    const [result] = await db
       .promise()
-      .query("SELECT 1 FROM accounts WHERE username = ? AND groupname = ?", [
+      .query("SELECT 1 FROM accounts WHERE username = ? AND groupnames = ?", [
          username,
-         groupname
+         groupnames
       ])
    //if user is in group isUserInGroup = true
    const isUserInGroup = result.length > 0
@@ -19,20 +19,20 @@ exports.checkGroup = catchAsyncErrors(async (req, res, next) => {
       success: true,
       message: `User ${username} is ${
          isUserInGroup ? "" : "not "
-      }a ${groupname}`,
+      }a ${groupnames}`,
       isUserInGroup
    })
 })
 
 //Function that creates a group =>  /api/v1/createGroup
 exports.createGroup = catchAsyncErrors(async (req, res, next) => {
-   const { groupname } = req.body
+   const { groupnames } = req.body
    await db
       .promise()
-      .query("INSERT INTO `groups` (groupname) VALUES (?)", [groupname])
+      .query("INSERT INTO `groups` (groupnames) VALUES (?)", [groupnames])
    res.json({
       success: true,
       message: "Group created successfully",
-      data: { groupname }
+      data: { groupnames }
    })
 })
