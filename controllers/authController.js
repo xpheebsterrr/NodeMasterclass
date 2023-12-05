@@ -41,19 +41,19 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
          expiresIn: process.env.JWT_EXPIRES_IN
       }
    )
-   // Set cookie options
-   const cookieOptions = {
-      expiresIn: new Date(
-         Date.now() + process.env.JWT_COOKIE_EXPIRES * 24 * 60 * 60 * 1000
-      ),
-      httpOnly: true, // The cookie is not accessible to client-side scripts
-      secure: req.secure || req.headers["x-forwarded-proto"] === "https", // Use secure flag on production
-      // secure: process.env.NODE_ENV === 'production', // set to true if https is used
-      sameSite: "strict" // Mitigate the risk of CSRF attack
-   }
-   //Send token in cookie
-   //res.cookie(name, value, [options])
-   res.cookie("access_token", token, cookieOptions)
+   // // Set cookie options (dont need cuz cookie is to be set in the front end)
+   // const cookieOptions = {
+   //    expiresIn: new Date(
+   //       Date.now() + process.env.JWT_COOKIE_EXPIRES * 24 * 60 * 60 * 1000
+   //    ),
+   //    httpOnly: true, // The cookie is not accessible to client-side scripts
+   //    secure: req.secure || req.headers["x-forwarded-proto"] === "https", // Use secure flag on production
+   //    // secure: process.env.NODE_ENV === 'production', // set to true if https is used
+   //    sameSite: "strict" // Mitigate the risk of CSRF attack
+   // }
+   // //Send token in cookie
+   // //res.cookie(name, value, [options])
+   // res.cookie("access_token", token, cookieOptions)
    //remove password from output
    user.password = undefined
    res.status(200).json({

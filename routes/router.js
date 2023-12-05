@@ -39,7 +39,7 @@ router
 
 //For Users
 //login User
-router.route("/loginUser").get(loginUser)
+router.route("/loginUser").post(loginUser)
 //logout User
 router.route("/logoutUser").get(isAuthenticated, logoutUser)
 //updateUserEmail

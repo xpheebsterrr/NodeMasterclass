@@ -2,7 +2,7 @@ const express = require("express")
 const app = express()
 //cross-origin request sharing allows you to make requests to the server deployed at a different domain, eg. front end port to back end port
 const cors = require("cors")
-app.use(cors())
+app.use(cors({ credentials: true }))
 //secretive files for security
 const dotenv = require("dotenv")
 const cookieParser = require("cookie-parser")
@@ -10,6 +10,7 @@ app.use(cookieParser())
 const db = require("./config/database")
 const errorMiddleware = require("./middlewares/errors")
 const ErrorHandler = require("./utils/errorHandler")
+// const path = require("path")
 
 //Setting up config.env file variables
 dotenv.config({ path: "./config/config.env" })
@@ -42,18 +43,26 @@ const middleware = (req, res, next) => {
 app.use(middleware)
 
 //Importing all routes
-// const auth = require("./routes/auth")
-// const user = require("./routes/user")
 const routes = require("./routes/router")
 //Mounting routes
-// app.use("/api/v1", auth)
-// app.use("/api/v1", user)
 app.use("/api/v1", routes)
 
 //handle unhandled routes
 app.all("*", (req, res, next) => {
    next(new ErrorHandler(`${req.originalUrl} route not found`, 404))
 })
+
+// app.use(express.static(path.join(__dirname, "client/build")))
+
+// // Serve React app's index.html for any other requests
+// app.get("*", (req, res) => {
+//    res.sendFile(path.join(__dirname, "..", "PleaseWork", "src", "index.html"))
+// })
+
+// app.use(express.static(path.join(__dirname, "dist")))
+// app.get("*", (req, res) => {
+//    res.sendFile(path.join(__dirname, "dist", "index.html"))
+// })
 
 //Middleware to handle errors
 app.use(errorMiddleware)
