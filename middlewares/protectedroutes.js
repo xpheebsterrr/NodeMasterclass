@@ -1,8 +1,10 @@
+const jwt = require("jsonwebtoken")
 /** Returns true if JWT is valid */
 //ensures that user is logged in
 exports.isAuthenticated = (req, res, next) => {
    //check for cookie called access_token to grant access to controller
-   const token = req.cookies.access_token // read the token from the cookie
+   const token = req.body.access_token // read the token from the cookie
+   console.log(token)
    if (token == null) {
       return res.sendStatus(401) // if there isn't any token
    }
@@ -11,7 +13,8 @@ exports.isAuthenticated = (req, res, next) => {
       req.username = data.username
       // req.groupnames = data.groupnames
       return next() // pass the execution off to whatever request the client intended
-   } catch {
+   } catch (e) {
+      console.log("auth error", e)
       return res.sendStatus(403) // if the token has expired or is invalid
    }
 }
@@ -30,11 +33,13 @@ exports.isAuthorised = (...groups) => {
          if (isAuthorised) {
             //user is authorized, continue to next middleware
             next()
+            return
          } else {
             res.json({
                success: false,
                message: "Error: User is not authorised."
             })
+            return
          }
       } else {
          //if groupnames not provided in req
@@ -44,7 +49,6 @@ exports.isAuthorised = (...groups) => {
          })
          return
       }
-      next()
    }
 }
 

@@ -56,7 +56,7 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
    // res.cookie("access_token", token, cookieOptions)
    //remove password from output
    user.password = undefined
-   res.status(200).json({
+   return res.status(200).json({
       success: true,
       message: "Logged in successfully",
       user,
@@ -66,14 +66,14 @@ exports.loginUser = catchAsyncErrors(async (req, res, next) => {
 
 exports.logoutUser = catchAsyncErrors(async (req, res, next) => {
    // Set cookie to none and expire it
-   res.cookie("access_token", "none", {
-      expiresIn: new Date(Date.now() + 3 * 1000), // Expire in 3 seconds
-      httpOnly: true,
-      secure: req.secure || req.headers["x-forwarded-proto"] === "https",
-      sameSite: "strict"
-   })
+   // res.cookie("access_token", "none", {
+   //    expiresIn: new Date(Date.now() + 3 * 1000), // Expire in 3 seconds
+   //    httpOnly: true,
+   //    secure: req.secure || req.headers["x-forwarded-proto"] === "https",
+   //    sameSite: "strict"
+   // })
 
-   res.status(200).json({
+   return res.status(200).json({
       success: true,
       message: "Logged out successfully"
    })

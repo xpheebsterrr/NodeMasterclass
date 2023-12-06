@@ -14,6 +14,7 @@ exports.getUsers = catchAsyncErrors(async (req, res, next) => {
       message: "Retrieved ${data[0].length} users successfully",
       data: data[0]
    })
+   return
 })
 
 // Create User  =>  /api/v1/CreateUser
@@ -48,6 +49,7 @@ exports.createUser = catchAsyncErrors(async (req, res, next) => {
       message: "User is created successfully",
       data: user[0]
    })
+   return
 })
 
 // Toggle User Status  =>  /api/v1/toggleIsActive
@@ -66,7 +68,7 @@ exports.toggleIsActive = catchAsyncErrors(async (req, res, next) => {
          newStatus,
          username
       ])
-   res.json({
+   return res.json({
       success: true,
       message: "User status toggled successfully",
       data: { username, isActive: newStatus }
@@ -97,7 +99,7 @@ exports.updateUser = catchAsyncErrors(async (req, res, next) => {
          "UPDATE accounts SET email = ?, password = ?, groupnames = ? WHERE username = ?",
          [email, hashedPassword, groupnames, username]
       )
-   res.json({
+   return res.json({
       success: true,
       message: "User updated successfully",
       //avoid returning password info for secure coding
@@ -114,7 +116,7 @@ exports.updateUserEmail = catchAsyncErrors(async (req, res, next) => {
          email,
          username
       ])
-   res.json({
+   return res.json({
       success: true,
       message: "Email updated successfully",
       data: { username, email }
@@ -143,7 +145,7 @@ exports.updateUserPassword = catchAsyncErrors(async (req, res, next) => {
          hashedPassword,
          username
       ])
-   res.json({
+   return res.json({
       success: true,
       message: "Password updated successfully",
       data: { username, password }

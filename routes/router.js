@@ -19,7 +19,7 @@ const { loginUser, logoutUser } = require("../controllers/authController")
 
 //For Admins
 //getUsers
-router.route("/getUsers").get(isAuthenticated, isAuthorised("admin"), getUsers)
+router.route("/getUsers").post(isAuthenticated, isAuthorised("admin"), getUsers)
 //createUser
 router
    .route("/createUser")
@@ -41,7 +41,7 @@ router
 //login User
 router.route("/loginUser").post(loginUser)
 //logout User
-router.route("/logoutUser").get(isAuthenticated, logoutUser)
+router.route("/logoutUser").post(isAuthenticated, logoutUser)
 //updateUserEmail
 router.route("/users/:username/email").put(isAuthenticated, updateUserEmail)
 //updateUserPassword
