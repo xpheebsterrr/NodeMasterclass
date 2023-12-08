@@ -83,8 +83,8 @@ exports.createUser = catchAsyncErrors(async (req, res, next) => {
 
    // Hash the password
    const hashedPassword = await bcrypt.hash(password, saltRounds)
+
    // Insert a new user into the accounts table
-   console.log(req.body)
    await db
       .promise()
       .query("INSERT INTO accounts (username, password, email, groupnames) VALUES (?, ?, ?, ?)", [
@@ -125,7 +125,6 @@ exports.updateUser = catchAsyncErrors(async (req, res, next) => {
    const { username, email, password, groupnames } = req.body
    // Password complexity check and hashing
    let hashedPassword
-   console.log("req.body", req.body)
    if (password) {
       const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&()])[A-Za-z\d@$!%*?&()]{8,10}$/
       if (!password.match(passwordRegex)) {
