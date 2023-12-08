@@ -41,11 +41,21 @@ exports.checkingGroup = async (req, res) => {
 
 //Function that creates a group =>  /api/v1/createGroup
 exports.createGroup = catchAsyncErrors(async (req, res, next) => {
-   const { groupnames } = req.body
-   await db.promise().query("INSERT INTO `groups` (groupnames) VALUES (?)", [groupnames])
+   const { groupname } = req.body
+   await db.promise().query("INSERT INTO `groups` (groupname) VALUES (?)", [groupname])
    res.json({
       success: true,
       message: "Group created successfully",
-      data: { groupnames }
+      data: { groupname }
+   })
+})
+
+//Function that gets a group =>  /api/v1/getGroup
+exports.getGroup = catchAsyncErrors(async (req, res, next) => {
+   const data = await db.promise().query("SELECT * FROM `groups`")
+   res.json({
+      success: true,
+      message: "Retrieved ${data[0].length} groups successfully",
+      data: data[0]
    })
 })

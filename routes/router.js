@@ -7,9 +7,10 @@ const {
    toggleIsActive,
    updateUserEmail,
    updateUserPassword,
-   updateUser
+   updateUser,
+   getUser
 } = require("../controllers/userController")
-const { createGroup, checkingGroup } = require("../controllers/groupController")
+const { createGroup, checkingGroup, getGroup } = require("../controllers/groupController")
 const { protectedAdmin, isAuthenticated, isAuthorised } = require("../middlewares/protectedroutes")
 const { loginUser, logoutUser } = require("../controllers/authController")
 
@@ -24,6 +25,8 @@ router.route("/users/:username/toggle-status").put(isAuthenticated, isAuthorised
 router.route("/users/:username").put(isAuthenticated, isAuthorised("admin"), protectedAdmin, updateUser)
 //createGroup
 router.route("/createGroup").post(isAuthenticated, isAuthorised("admin"), createGroup)
+//getGroup
+router.route("/getGroup").post(isAuthenticated, isAuthorised("admin"), getGroup)
 
 //For Users
 //login User
@@ -34,6 +37,8 @@ router.route("/logoutUser").post(isAuthenticated, logoutUser)
 router.route("/users/:username/email").put(isAuthenticated, updateUserEmail)
 //updateUserPassword
 router.route("/users/:username/password").put(isAuthenticated, updateUserPassword)
+//getUser
+router.route("/getUser").post(isAuthenticated, getUser)
 
 //Specs
 //Group functions
