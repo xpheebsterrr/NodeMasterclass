@@ -122,7 +122,8 @@ exports.toggleIsActive = catchAsyncErrors(async (req, res, next) => {
 
 // Update User  =>  /api/v1/updateUser
 exports.updateUser = catchAsyncErrors(async (req, res, next) => {
-   const { username, email, password, groupnames } = req.body
+   const { username, email, password, groupnames, isActive } = req.body
+
    // Password complexity check and hashing
    let hashedPassword
    if (password) {
@@ -136,28 +137,31 @@ exports.updateUser = catchAsyncErrors(async (req, res, next) => {
       hashedPassword = await bcrypt.hash(password, saltRounds) // using bcrypt to hash the password
       await db
          .promise()
-         .query("UPDATE accounts SET email = ?, password = ?, groupnames = ? WHERE username = ?", [
+         .query("UPDATE accounts SET email = ?, password = ?, groupnames = ?, isActive = ? WHERE username = ?", [
             email,
             hashedPassword,
             groupnames,
+            isActive,
             username
          ])
    } else {
-      await db.promise().query("UPDATE accounts SET email = ?, groupnames = ? WHERE username = ?", [email, groupnames, username])
+      await db.promise().query("UPDATE accounts SET email = ?, groupnames = ?, isActive = ? WHERE username = ?", 
+      [email, groupnames, isActive, username])
    }
 
    return res.json({
       success: true,
       message: "User updated successfully",
       //avoid returning password info for secure coding
-      data: { username, email, groupnames }
+      data: { username, email, groupnames, isActive }
    })
 })
 
 // Update user Email =>/api/v1/updateUserEmail
 exports.updateUserEmail = catchAsyncErrors(async (req, res, next) => {
    const { username, email } = req.body
-   const data = await db.promise().query("UPDATE accounts SET email = ? WHERE username = ?", [email, username])
+   const data = await db.promise().query("UPDATE accounts SET email = ? WHERE username = ?", 
+   [email, username])
    return res.json({
       success: true,
       message: "Email updated successfully",
