@@ -62,12 +62,16 @@ exports.isAuthorised = (...groups) => {
 
 //ensures that admins cannot edit admins
 exports.protectedAdmin = async (req, res, next) => {
-    const { groupnames } = req.userDetails
-    console.log("123", req.userDetails)
-    if (groupnames === "admin" && req.user.username != "admin") {
+    const { username, groupnames } = req.userDetails
+    console.log(req.body)
+    if (groupnames.includes("admin") &&  // requestor is in admin group
+        username != "admin" &&  // requestor is not super admin
+        username != req.body.username &&  // requestor is not updating himself
+        req.body.oldGroupnames.includes("admin")  // requestor is trying to update another admin
+        ) {
         res.json({
             success: false,
-            message: "Error: Admin is not editable."
+            message: "Error: Admins cannot update other admins."
         })
         return
     } else {
