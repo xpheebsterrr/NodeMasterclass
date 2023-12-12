@@ -64,7 +64,7 @@ exports.isAuthorised = (...groups) => {
 exports.protectedAdmin = async (req, res, next) => {
     const { groupnames } = req.userDetails
     console.log("123", req.userDetails)
-    if (groupnames === "admin" && req.user.username != "admin") {
+    if (groupnames === "admin" && req.userDetails.username != "admin") {
         res.json({
             success: false,
             message: "Error: Admin is not editable."
