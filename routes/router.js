@@ -2,18 +2,20 @@ const express = require("express")
 const router = express.Router()
 //export methods
 const {
-   getUsers,
-   createUser,
-   toggleIsActive,
-   updateUserEmail,
-   updateUserPassword,
-   updateUser,
-   getUser
+    getUsers,
+    createUser,
+    toggleIsActive,
+    updateUserEmail,
+    updateUserPassword,
+    updateUser,
+    getUser
 } = require("../controllers/userController")
 const { createGroup, checkingGroup, getGroup } = require("../controllers/groupController")
 const { protectedAdmin, isAuthenticated, isAuthorised } = require("../middlewares/protectedroutes")
 const { loginUser, logoutUser } = require("../controllers/authController")
+const { getApps, createApp } = require("../controllers/appController")
 
+//Assignment 1
 //For Admins
 //getUsers
 router.route("/getUsers").post(isAuthenticated, isAuthorised("admin"), getUsers)
@@ -43,5 +45,12 @@ router.route("/getUser").post(isAuthenticated, getUser)
 //Specs
 //Group functions
 router.route("/checkGroup").post(isAuthenticated, checkingGroup)
+
+//Assignment 2
+//For Application
+//getApp
+router.route("/getApps").post(getApps)
+//createApp
+router.route("/createApp").post(createApp)
 
 module.exports = router

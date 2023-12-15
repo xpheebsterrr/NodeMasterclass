@@ -1,104 +1,81 @@
-//the User controller will have all the methods for the jobs router and we define all the routes defination in a separate method
-
+//the App controller will have all the methods for the app router and we define all the routes defination in a separate method
 const ErrorHandler = require("../utils/errorHandler")
 const catchAsyncErrors = require("../middlewares/catchAsyncErrors")
 const db = require("../config/database")
-const bcrypt = require("bcrypt")
-const saltRounds = 10 //number of salt rounds for bcrypt hashing
 
-// Get all Users  =>  /api/v1/getUsers (named as api for clarity)
-exports.getUsers = catchAsyncErrors(async (req, res, next) => {
-    const data = await db.promise().query("SELECT * FROM accounts")
+// Get all App  =>  /api/v1/getApp (named as api for clarity)
+exports.getApps = catchAsyncErrors(async (req, res, next) => {
+    const data = await db.promise().query("SELECT * FROM application")
     res.json({
         success: true,
-        message: "Retrieved ${data[0].length} users successfully",
+        message: "Retrieved ${data[0].length} apps successfully",
         data: data[0]
     })
     return
 })
 
-function parseJwt(token) {
-    try {
-        // Split the token into its parts
-        const [header, payload, signature] = token.split(".")
-
-        // Decode the payload
-        const base64 = payload.replace(/-/g, "+").replace(/_/g, "/")
-        const jsonPayload = decodeURIComponent(
-            atob(base64)
-                .split("")
-                .map(function (c) {
-                    return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)
-                })
-                .join("")
-        )
-
-        return JSON.parse(jsonPayload)
-    } catch (e) {
-        return null // Return null if token is invalid
-    }
-}
-
-// Get one User  =>  /api/v1/getUser (named as api for clarity)
-exports.getUser = catchAsyncErrors(async (req, res, next) => {
-    const userData = parseJwt(req.body.access_token)
-    const data = await db.promise().query("SELECT * FROM accounts WHERE username = ?", userData.username)
-    res.json({
-        success: true,
-        message: "Retrieved user ${username} successfully",
-        data: data[0][0]
-    })
-    return
-})
-
-// Create User  =>  /api/v1/CreateUser
-exports.createUser = catchAsyncErrors(async (req, res, next) => {
+// Create App  =>  /api/v1/CreateApp
+exports.createApp = catchAsyncErrors(async (req, res, next) => {
     // const token = req.body.access_token // read the token from the cookie
-    const { username, password, email, groupnames } = req.body
-    //if no username
-    if (!username || username.trim() === "") {
+    const {
+        App_Acronym,
+        App_Description,
+        App_Rnumber,
+        App_startDate,
+        App_endDate,
+        App_permit_Open,
+        App_permit_toDoList,
+        App_permit_Doing,
+        App_permit_Done,
+        App_permit_Create
+    } = req.body
+    //if no App_Acronym
+    if (!App_Acronym || App_Acronym.trim() === "") {
         return res.status(400).json({
             success: false,
-            message: "Username is required."
+            message: "App Acronym is required."
         })
     }
-    //password complexity check
-    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&()])[A-Za-z\d@$!%*?&()]{8,10}$/
-    if (!password.match(passwordRegex)) {
+    //if no App_Rnumber
+    if (!App_Rnumber || App_Rnumber.trim() === "") {
         return res.status(400).json({
             success: false,
-            message: "Password must be 8-10 characters long and include alphabets, numbers, and special characters."
+            message: "App Rnumber is required."
         })
     }
-    // Check if the username already exists
-    const [existingUser] = await db.promise().query("SELECT * FROM accounts WHERE username = ?", [username])
-    if (existingUser.length > 0) {
+    // Check if the App already exists
+    const [existingApp] = await db.promise().query("SELECT * FROM application WHERE App_Acronym = ?", [App_Acronym])
+    if (existingApp.length > 0) {
         return res.status(409).json({
             // 409 Conflict
             success: false,
-            message: `Error: User '${username}' already exists`
+            message: `Error: App '${existingApp}' already exists`
         })
     }
-
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, saltRounds)
-
     // Insert a new user into the accounts table
     await db
         .promise()
-        .query("INSERT INTO accounts (username, password, email, groupnames) VALUES (?, ?, ?, ?)", [
-            username,
-            hashedPassword,
-            email,
-            groupnames
-        ])
-
+        .query(
+            "INSERT INTO application (App_Acronym, App_Description, App_Rnumber, App_startDate, App_endDate, App_permit_Open, App_permit_toDoList, App_permit_Doing, App_permit_Done, App_permit_Create) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ? ,?)",
+            [
+                App_Acronym,
+                App_Description,
+                App_Rnumber,
+                App_startDate,
+                App_endDate,
+                App_permit_Open,
+                App_permit_toDoList,
+                App_permit_Doing,
+                App_permit_Done,
+                App_permit_Create
+            ]
+        )
     // Retrieve the newly created user
-    const [user] = await db.promise().query("SELECT * FROM accounts WHERE username = ?", [username])
+    const [app] = await db.promise().query("SELECT * FROM application WHERE App_Acronym = ?", [App_Acronym])
     res.json({
         success: true,
-        message: "User is created successfully",
-        data: user[0]
+        message: "App is created successfully",
+        data: app[0]
     })
     return
 })
