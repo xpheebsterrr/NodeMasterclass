@@ -19,15 +19,15 @@ exports.createApp = catchAsyncErrors(async (req, res, next) => {
     // const token = req.body.access_token // read the token from the cookie
     const {
         App_Acronym,
-        App_Description,
         App_Rnumber,
         App_startDate,
         App_endDate,
+        App_Description,
+        App_permit_Create,
         App_permit_Open,
         App_permit_toDoList,
         App_permit_Doing,
-        App_permit_Done,
-        App_permit_Create
+        App_permit_Done
     } = req.body
     //if no App_Acronym
     if (!App_Acronym || App_Acronym.trim() === "") {
@@ -49,14 +49,14 @@ exports.createApp = catchAsyncErrors(async (req, res, next) => {
         return res.status(409).json({
             // 409 Conflict
             success: false,
-            message: `Error: App '${existingApp}' already exists`
+            message: `App '${App_Acronym}' already exists`
         })
     }
     // Insert a new user into the accounts table
     await db
         .promise()
         .query(
-            "INSERT INTO application (App_Acronym, App_Description, App_Rnumber, App_startDate, App_endDate, App_permit_Open, App_permit_toDoList, App_permit_Doing, App_permit_Done, App_permit_Create) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ? ,?)",
+            "INSERT INTO application (App_Acronym, App_Description, App_Rnumber, App_startDate, App_endDate, App_permit_Open, App_permit_toDoList, App_permit_Doing, App_permit_Done, App_permit_Create) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ? , ?)",
             [
                 App_Acronym,
                 App_Description,
