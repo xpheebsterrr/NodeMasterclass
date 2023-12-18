@@ -16,7 +16,6 @@ exports.getApps = catchAsyncErrors(async (req, res, next) => {
 
 // Create App  =>  /api/v1/CreateApp
 exports.createApp = catchAsyncErrors(async (req, res, next) => {
-    // const token = req.body.access_token // read the token from the cookie
     const {
         App_Acronym,
         App_Rnumber,
@@ -80,64 +79,106 @@ exports.createApp = catchAsyncErrors(async (req, res, next) => {
     return
 })
 
-// Toggle User Status  =>  /api/v1/toggleIsActive
-exports.toggleIsActive = catchAsyncErrors(async (req, res, next) => {
-    const { username } = req.body
-    // Get the current 'isActive' status for the user
-    const [userData] = await db.promise().query("SELECT isActive FROM accounts WHERE username = ?", [username])
-    // Toggle the 'isActive' status
-    const newStatus = userData[0].isActive === "active" ? "disabled" : "active"
-    // Update the 'isActive' status for the user
-    const result = await db.promise().query("UPDATE accounts SET isActive = ? WHERE username = ?", [newStatus, username])
+// Update App  =>  /api/v1/updateApp
+exports.updateApp = catchAsyncErrors(async (req, res, next) => {
+    const {
+        App_Acronym,
+        App_startDate,
+        App_endDate,
+        App_Description,
+        App_permit_Create,
+        App_permit_Open,
+        App_permit_toDoList,
+        App_permit_Doing,
+        App_permit_Done
+    } = req.body
+    await db
+        .promise()
+        .query(
+            "UPDATE application SET App_Description = ?, App_startDate = ?, App_endDate = ?, App_permit_Open = ?, App_permit_toDoList = ?, App_permit_Doing = ?, App_permit_Done = ?, App_permit_Create = ?  WHERE App_Acronym = ?",
+            [
+                App_Description,
+                App_startDate,
+                App_endDate,
+                App_permit_Open,
+                App_permit_toDoList,
+                App_permit_Doing,
+                App_permit_Done,
+                App_permit_Create,
+                App_Acronym
+            ]
+        )
+
     return res.json({
         success: true,
-        message: "User status toggled successfully",
-        data: { username, isActive: newStatus }
-    })
-})
-
-// Update User  =>  /api/v1/updateUser
-exports.updateUser = catchAsyncErrors(async (req, res, next) => {
-    const { username, email, password, groupnames, isActive } = req.body
-
-    // Password complexity check and hashing
-    let hashedPassword
-    if (password) {
-        const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&()])[A-Za-z\d@$!%*?&()]{8,10}$/
-        if (!password.match(passwordRegex)) {
-            return res.status(400).json({
-                success: false,
-                message: "Password must be 8-10 characters long and include alphabets, numbers, and special characters."
-            })
+        message: "App updated successfully",
+        data: {
+            App_Acronym,
+            App_Description,
+            App_startDate,
+            App_endDate,
+            App_permit_Open,
+            App_permit_toDoList,
+            App_permit_Doing,
+            App_permit_Done,
+            App_permit_Create
         }
-        hashedPassword = await bcrypt.hash(password, saltRounds) // using bcrypt to hash the password
-        await db
-            .promise()
-            .query("UPDATE accounts SET email = ?, password = ?, groupnames = ?, isActive = ? WHERE username = ?", [
-                email,
-                hashedPassword,
-                groupnames,
-                isActive,
-                username
-            ])
-    } else {
-        await db
-            .promise()
-            .query("UPDATE accounts SET email = ?, groupnames = ?, isActive = ? WHERE username = ?", [
-                email,
-                groupnames,
-                isActive,
-                username
-            ])
+    })
+})
+
+// Create Plan  =>  /api/v1/CreatePlan
+exports.createPlan = catchAsyncErrors(async (req, res, next) => {
+    const { Plan_MVP_name, Plan_startDate, Plan_endDate, Plan_app_Acronym } = req.body
+    //if no Plan name
+    if (!Plan_MVP_name || Plan_MVP_name.trim() === "") {
+        return res.status(400).json({
+            success: false,
+            message: "Plan name is required."
+        })
     }
+    // Insert a new plan into the plans table
+    await db
+        .promise()
+        .query("INSERT INTO plan (Plan_MVP_name, Plan_startDate, Plan_endDate, Plan_app_Acronym) VALUES (?, ?, ?, ?)", [
+            Plan_MVP_name,
+            Plan_startDate,
+            Plan_endDate,
+            Plan_app_Acronym
+        ])
+    // Retrieve the newly created user
+    const [plan] = await db.promise().query("SELECT * FROM plan WHERE Plan_app_Acronym = ?", [Plan_app_Acronym])
+    res.json({
+        success: true,
+        message: "Plan is created successfully",
+        data: plan[0]
+    })
+    return
+})
+
+// Update Plan  =>  /api/v1/updatePlan
+exports.updatePlan = catchAsyncErrors(async (req, res, next) => {
+    const { Plan_MVP_name, Plan_startDate, Plan_endDate } = req.body
+    await db
+        .promise()
+        .query("UPDATE plan SET Plan_MVP_name = ?, Plan_startDate = ?, Plan_endDate = ? WHERE Plan_MVP_name = ?", [
+            Plan_MVP_name,
+            Plan_startDate,
+            Plan_endDate
+        ])
 
     return res.json({
         success: true,
-        message: "User updated successfully",
-        //avoid returning password info for secure coding
-        data: { username, email, groupnames, isActive }
+        message: "Plan updated successfully",
+        data: {
+            Plan_MVP_name,
+            Plan_startDate,
+            Plan_endDate,
+            Plan_app_Acronym
+        }
     })
 })
+
+//Get all Plans
 
 // Update user Email =>/api/v1/updateUserEmail
 exports.updateUserEmail = catchAsyncErrors(async (req, res, next) => {
@@ -147,27 +188,5 @@ exports.updateUserEmail = catchAsyncErrors(async (req, res, next) => {
         success: true,
         message: "Email updated successfully",
         data: { username, email }
-    })
-})
-
-// Update user Password =>/api/v1/updateUserPassword
-exports.updateUserPassword = catchAsyncErrors(async (req, res, next) => {
-    const { username, password } = req.body
-    let hashedPassword
-    if (password) {
-        const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&()])[A-Za-z\d@$!%*?&()]{8,10}$/
-        if (!password.match(passwordRegex)) {
-            return res.status(400).json({
-                success: false,
-                message: "Password must be 8-10 characters long and include alphabets, numbers, and special characters."
-            })
-        }
-        hashedPassword = await bcrypt.hash(password, saltRounds)
-    }
-    await db.promise().query("UPDATE accounts SET password = ? WHERE username = ?", [hashedPassword, username])
-    return res.json({
-        success: true,
-        message: "Password updated successfully",
-        data: { username, password }
     })
 })
