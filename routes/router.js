@@ -13,7 +13,7 @@ const {
 const { createGroup, checkingGroup, getGroup } = require("../controllers/groupController")
 const { protectedAdmin, isAuthenticated, isAuthorised } = require("../middlewares/protectedroutes")
 const { loginUser, logoutUser } = require("../controllers/authController")
-const { getApps, createApp, updateApp, createPlan, updatePlan } = require("../controllers/appController")
+const { getApps, createApp, updateApp, createPlan, updatePlan, getPlans } = require("../controllers/appController")
 
 //Assignment 1
 //For Admins
@@ -56,8 +56,11 @@ router.route("/createApp").post(createApp)
 router.route("/updateApp").put(updateApp)
 
 //For Plans
+//create plsm
 router.route("/createPlan").post(createPlan)
-//updatePlan
+//update Plan
 router.route("/updatePlan").put(updatePlan)
+//get all plan
+router.route("/getPlans").post(getPlans)
 
 module.exports = router

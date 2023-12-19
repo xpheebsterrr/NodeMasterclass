@@ -157,15 +157,22 @@ exports.createPlan = catchAsyncErrors(async (req, res, next) => {
 
 // Update Plan  =>  /api/v1/updatePlan
 exports.updatePlan = catchAsyncErrors(async (req, res, next) => {
-    const { Plan_MVP_name, Plan_startDate, Plan_endDate } = req.body
-    await db
+    const { Plan_startDate, Plan_endDate, Plan_MVP_name, Plan_app_Acronym } = req.body
+    const result = await db
         .promise()
-        .query("UPDATE plan SET Plan_MVP_name = ?, Plan_startDate = ?, Plan_endDate = ? WHERE Plan_MVP_name = ?", [
-            Plan_MVP_name,
+        .query("UPDATE plan SET Plan_startDate = ?, Plan_endDate = ? WHERE Plan_MVP_name = ? AND Plan_app_Acronym = ?", [
             Plan_startDate,
-            Plan_endDate
+            Plan_endDate,
+            Plan_MVP_name,
+            Plan_app_Acronym
         ])
-
+    if (result[0].affectedRows === 0) {
+        // No rows were updated (no matching records found)
+        return res.status(404).json({
+            success: false,
+            message: "No matching records found for update"
+        })
+    }
     return res.json({
         success: true,
         message: "Plan updated successfully",
@@ -178,7 +185,17 @@ exports.updatePlan = catchAsyncErrors(async (req, res, next) => {
     })
 })
 
-//Get all Plans
+// Get all Plans  =>  /api/v1/getPlans (named as api for clarity)
+exports.getPlans = catchAsyncErrors(async (req, res, next) => {
+    const { Plan_app_Acronym } = req.body
+    const data = await db.promise().query("SELECT * FROM plan WHERE Plan_app_Acronym = ?", [Plan_app_Acronym])
+    res.json({
+        success: true,
+        message: "Retrieved ${data[0].length} plans successfully",
+        data: data[0]
+    })
+    return
+})
 
 // Update user Email =>/api/v1/updateUserEmail
 exports.updateUserEmail = catchAsyncErrors(async (req, res, next) => {
