@@ -13,7 +13,18 @@ const {
 const { createGroup, checkingGroup, getGroup } = require("../controllers/groupController")
 const { protectedAdmin, isAuthenticated, isAuthorised } = require("../middlewares/protectedroutes")
 const { loginUser, logoutUser } = require("../controllers/authController")
-const { getApps, createApp, updateApp, createPlan, updatePlan, getPlans } = require("../controllers/appController")
+const {
+    getApps,
+    createApp,
+    updateApp,
+    createPlan,
+    updatePlan,
+    getPlans,
+    getTasks,
+    createTask,
+    getApp,
+    editTask
+} = require("../controllers/appController")
 
 //Assignment 1
 //For Admins
@@ -48,19 +59,29 @@ router.route("/checkGroup").post(isAuthenticated, checkingGroup)
 
 //Assignment 2
 //For Application
-//getApp
+//get all App
 router.route("/getApps").post(getApps)
 //createApp
 router.route("/createApp").post(createApp)
 //updateApp
 router.route("/updateApp").put(updateApp)
+//get App
+router.route("/getApp").post(getApp)
 
 //For Plans
-//create plsm
+//create plan
 router.route("/createPlan").post(createPlan)
 //update Plan
 router.route("/updatePlan").put(updatePlan)
 //get all plan
 router.route("/getPlans").post(getPlans)
+
+//For Tasks
+//get all tasks
+router.route("/getTasks").post(getTasks)
+//create task
+router.route("/createTask").post(createTask)
+//edit task
+router.route("/editTask").post(isAuthenticated, editTask)
 
 module.exports = router
