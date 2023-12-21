@@ -23,7 +23,8 @@ const {
     getTasks,
     createTask,
     getApp,
-    editTask
+    editTask,
+    promoteTask
 } = require("../controllers/appController")
 
 //Assignment 1
@@ -39,7 +40,7 @@ router.route("/users/:username").put(isAuthenticated, isAuthorised("admin"), pro
 //createGroup
 router.route("/createGroup").post(isAuthenticated, isAuthorised("admin"), createGroup)
 //getGroup
-router.route("/getGroup").post(isAuthenticated, isAuthorised("admin"), getGroup)
+router.route("/getGroup").post(isAuthenticated, getGroup)
 
 //For Users
 //login User
@@ -80,8 +81,10 @@ router.route("/getPlans").post(getPlans)
 //get all tasks
 router.route("/getTasks").post(getTasks)
 //create task
-router.route("/createTask").post(createTask)
+router.route("/createTask").post(isAuthenticated, createTask)
 //edit task
 router.route("/editTask").post(isAuthenticated, editTask)
+//promote task
+router.route("/promoteTask").post(isAuthenticated, promoteTask)
 
 module.exports = router

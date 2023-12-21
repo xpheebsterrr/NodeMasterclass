@@ -14,6 +14,7 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
     try {
         const data = jwt.verify(token, process.env.JWT_SECRET)
         req.username = data.username
+        req.groupnames = data.groupnames
         const result = await db.promise().query("SELECT * FROM accounts WHERE username = ?", [req.username])
         req.userDetails = result[0][0]
         if (req.userDetails.isActive === "disabled") {

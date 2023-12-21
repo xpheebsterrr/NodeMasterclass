@@ -3,7 +3,7 @@ const catchAsyncErrors = require("../middlewares/catchAsyncErrors")
 const db = require("../config/database")
 
 //Checkgroup function that returns a value to indicate if a user is in the group =>  /api/v1/checkGroup
-async function checkGroup(userid, groupname) {
+exports.checkGroup = async (userid, groupname) => {
     //If a matching row is found, 1 is returned; if not, the query returns an empty result set.
     const [result] = await db.promise().query("SELECT groupnames FROM accounts WHERE username = ?", [userid])
     // Check if the result is not empty and has groupnames
@@ -23,7 +23,7 @@ exports.checkingGroup = async (req, res) => {
     const username = req.username
     const group = req.body.groupnames
     try {
-        const result = await checkGroup(username, group)
+        const result = await this.checkGroup(username, group)
         // Return successful check
         return res.status(200).json({
             result: result,

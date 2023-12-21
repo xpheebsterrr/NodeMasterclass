@@ -3,6 +3,7 @@ const ErrorHandler = require("../utils/errorHandler")
 const catchAsyncErrors = require("../middlewares/catchAsyncErrors")
 const db = require("../config/database")
 const jwt = require("jsonwebtoken")
+const { checkGroup } = require("./groupController")
 
 // Get all App  =>  /api/v1/getApp (named as api for clarity)
 exports.getApps = catchAsyncErrors(async (req, res, next) => {
@@ -226,17 +227,14 @@ exports.getTasks = catchAsyncErrors(async (req, res, next) => {
 })
 // Create Task  =>  /api/v1/CreateTask
 exports.createTask = catchAsyncErrors(async (req, res, next) => {
-    const { Task_name, Task_app_Acronym, Task_id, Task_description, access_token } = req.body
-    const token = access_token
-    //if no Plan name
+    const { Task_name, Task_app_Acronym, Task_id, Task_description } = req.body
+    //if no Task name
     if (!Task_name || Task_name.trim() === "") {
         return res.status(400).json({
             success: false,
             message: "Task name is required."
         })
     }
-    //createNote -> Task Created
-    const taskNotes = "Task is created"
     //add createDate
     function getCurrentDate() {
         const now = new Date()
@@ -246,17 +244,35 @@ exports.createTask = catchAsyncErrors(async (req, res, next) => {
         return `${day}-${month}-${year}`
     }
     const currentDate = getCurrentDate()
+    //Get current Date + Time
+    function getCurrentDateTime() {
+        const now = new Date()
+
+        const day = String(now.getDate()).padStart(2, "0") // Get the day and pad with '0' if single digit
+        const month = String(now.getMonth() + 1).padStart(2, "0") // Get the month (months are 0-based) and pad
+        const year = now.getFullYear() // Get the full year
+
+        const hours = String(now.getHours()).padStart(2, "0") // Get the hours and pad with '0' if single digit
+        const minutes = String(now.getMinutes()).padStart(2, "0") // Get the minutes and pad
+        const seconds = String(now.getSeconds()).padStart(2, "0") // Get the seconds and pad
+
+        return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`
+    }
+
+    const currentDateTime = getCurrentDateTime()
+
     //add Task_creator n owner (user)
-    const data = jwt.verify(token, process.env.JWT_SECRET)
-    const Task_creator = data.username
-    //State -> open state
+    const Task_owner = req.username
+    //State -> open state (hardcorded for createTask)
+    //createNote -> Task Created
+    const taskNotes = "[" + currentDateTime + "] " + Task_owner + " (open): Task is created"
 
     // Insert a new task into the task table
     await db
         .promise()
         .query(
             "INSERT INTO task (Task_name, Task_app_Acronym, Task_id, Task_description, Task_notes, Task_state, Task_creator, Task_owner, Task_createDate ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [Task_name, Task_app_Acronym, Task_id, Task_description, taskNotes, "open", Task_creator, Task_creator, currentDate]
+            [Task_name, Task_app_Acronym, Task_id, Task_description, taskNotes, "open", Task_owner, Task_owner, currentDate]
         )
     //Increment r number
     await db.promise().query("UPDATE application SET App_Rnumber = App_Rnumber + 1 WHERE App_Acronym = ?", [Task_app_Acronym])
@@ -270,15 +286,42 @@ exports.createTask = catchAsyncErrors(async (req, res, next) => {
     return
 })
 
-//Edit Tasks =>  /api/v1/editTask
+//Edit Tasks =>  /api/v1/editTask (add note and plan)
 exports.editTask = catchAsyncErrors(async (req, res, next) => {
-    const { Task_plan, Task_notes, Task_id } = req.body
-    const { Task_owner } = req.username
+    const { Task_plan, Task_notes, Task_id, Task_state, Task_name } = req.body
+    const Task_owner = req.username
+    //Get current Date + Time
+    function getCurrentDateTime() {
+        const now = new Date()
+
+        const day = String(now.getDate()).padStart(2, "0") // Get the day and pad with '0' if single digit
+        const month = String(now.getMonth() + 1).padStart(2, "0") // Get the month (months are 0-based) and pad
+        const year = now.getFullYear() // Get the full year
+
+        const hours = String(now.getHours()).padStart(2, "0") // Get the hours and pad with '0' if single digit
+        const minutes = String(now.getMinutes()).padStart(2, "0") // Get the minutes and pad
+        const seconds = String(now.getSeconds()).padStart(2, "0") // Get the seconds and pad
+
+        return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`
+    }
+    const currentDateTime = getCurrentDateTime()
+
+    // Fetch the previous notes from the database
+    const [previousNotes] = await db.promise().query("SELECT Task_notes FROM task WHERE Task_id = ?", [Task_id])
+    const previousNote = previousNotes[0].Task_notes || "" // Retrieve the previous notes
+    // Concatenate the new note with the previous notes on a new line
+    // const newNote = `[${currentDateTime}] ${Task_owner} (${Task_state}) ${Task_notes}\n${previousNote}`
+    // Check if Task_notes is not empty before creating the new note
+    const newNote = `[${currentDateTime}] ${Task_owner} (${Task_state}): ${
+        Task_notes ? Task_notes : "Edited Task"
+    }\n${previousNote}`
+
+    // const newNote = "[" + currentDateTime + "] " + Task_owner + " (" + Task_state + ") " + Task_notes
     const result = await db
         .promise()
         .query("UPDATE task SET Task_plan = ?, Task_notes = ?, Task_owner = ? WHERE Task_id = ?", [
             Task_plan,
-            Task_notes,
+            newNote,
             Task_owner,
             Task_id
         ])
@@ -286,7 +329,7 @@ exports.editTask = catchAsyncErrors(async (req, res, next) => {
         // No rows were updated (no matching records found)
         return res.status(404).json({
             success: false,
-            message: "No matching records found for update"
+            message: "No edits are made"
         })
     }
     return res.json({
@@ -294,9 +337,111 @@ exports.editTask = catchAsyncErrors(async (req, res, next) => {
         message: "Plan updated successfully",
         data: {
             Task_plan,
-            Task_notes,
+            Task_notes: newNote,
             Task_id,
-            Task_owner
+            Task_owner,
+            Task_state,
+            Task_name
+        }
+    })
+})
+
+//Promote Tasks =>  /api/v1/promoteTask (add note and plan)
+exports.promoteTask = catchAsyncErrors(async (req, res, next) => {
+    const { Task_plan, Task_notes, Task_id, Task_state, Task_name, Task_app_Acronym } = req.body
+    const Task_owner = req.username
+    // const Task_owner_groupname = req.groupnames
+
+    //permission switch case
+    let newState
+    let appPermit
+    switch (Task_state) {
+        case "open":
+            newState = "todo"
+            appPermit = "App_permit_Open"
+            break
+        case "todo":
+            newState = "doing"
+            appPermit = "App_permit_toDoList"
+            break
+        case "doing":
+            newState = "done"
+            appPermit = "App_permit_Doing"
+            break
+        case "done":
+            newState = "closed"
+            appPermit = "App_permit_Done"
+            break
+        case "closed":
+            return res.json({
+                unauth: "role"
+            })
+        default:
+            return res.json({
+                error: "Internal Server Error"
+            })
+    }
+    //find the user group with permission
+    const statePermit = await db.promise().query(`SELECT ${appPermit} FROM application WHERE App_Acronym = ?`, [Task_app_Acronym])
+    //check if user role matches app permits
+    const auth = await checkGroup(Task_owner, statePermit[0][0][appPermit])
+    if (!auth) {
+        return res.json({
+            success: false,
+            unauth: "role",
+            message: "Failed to promote task"
+        })
+    }
+    //comeback
+
+    //Creating note
+    //Get current Date + Time
+    function getCurrentDateTime() {
+        const now = new Date()
+        const day = String(now.getDate()).padStart(2, "0") // Get the day and pad with '0' if single digit
+        const month = String(now.getMonth() + 1).padStart(2, "0") // Get the month (months are 0-based) and pad
+        const year = now.getFullYear() // Get the full year
+        const hours = String(now.getHours()).padStart(2, "0") // Get the hours and pad with '0' if single digit
+        const minutes = String(now.getMinutes()).padStart(2, "0") // Get the minutes and pad
+        const seconds = String(now.getSeconds()).padStart(2, "0") // Get the seconds and pad
+        return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`
+    }
+    const currentDateTime = getCurrentDateTime()
+    // Fetch the previous notes from the database
+    const [previousNotes] = await db.promise().query("SELECT Task_notes FROM task WHERE Task_id = ?", [Task_id])
+    const previousNote = previousNotes[0].Task_notes || "" // Retrieve the previous notes
+    // Concatenate the new note with the previous notes on a new line
+    // Check if Task_notes is not empty before creating the new note
+    const newNote = `[${currentDateTime}] ${Task_owner} (${Task_state}): ${
+        Task_notes ? Task_notes : "Promoted Task"
+    }\n${previousNote}`
+
+    const result = await db
+        .promise()
+        .query("UPDATE task SET Task_plan = ?, Task_notes = ?, Task_owner = ?, Task_state =? WHERE Task_id = ?", [
+            Task_plan,
+            newNote,
+            Task_owner,
+            newState,
+            Task_id
+        ])
+    if (result[0].affectedRows === 0) {
+        // No rows were updated (no matching records found)
+        return res.status(404).json({
+            success: false,
+            message: "No edits are made"
+        })
+    }
+    return res.json({
+        success: true,
+        message: "Plan updated successfully",
+        data: {
+            Task_plan,
+            Task_notes: newNote,
+            Task_id,
+            Task_owner,
+            Task_state: newState,
+            Task_name
         }
     })
 })
