@@ -24,7 +24,8 @@ const {
     createTask,
     getApp,
     editTask,
-    promoteTask
+    promoteTask,
+    demoteTask
 } = require("../controllers/appController")
 
 //Assignment 1
@@ -86,5 +87,7 @@ router.route("/createTask").post(isAuthenticated, createTask)
 router.route("/editTask").post(isAuthenticated, editTask)
 //promote task
 router.route("/promoteTask").post(isAuthenticated, promoteTask)
+//demote task
+router.route("/demoteTask").post(isAuthenticated, demoteTask)
 
 module.exports = router

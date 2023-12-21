@@ -334,7 +334,7 @@ exports.editTask = catchAsyncErrors(async (req, res, next) => {
     }
     return res.json({
         success: true,
-        message: "Plan updated successfully",
+        message: "Task updated successfully",
         data: {
             Task_plan,
             Task_notes: newNote,
@@ -434,7 +434,107 @@ exports.promoteTask = catchAsyncErrors(async (req, res, next) => {
     }
     return res.json({
         success: true,
-        message: "Plan updated successfully",
+        message: "Task promoted successfully",
+        data: {
+            Task_plan,
+            Task_notes: newNote,
+            Task_id,
+            Task_owner,
+            Task_state: newState,
+            Task_name
+        }
+    })
+})
+
+//Demote Tasks =>  /api/v1/demoteTask (add note and plan)
+//Reject Tasks =>
+exports.demoteTask = catchAsyncErrors(async (req, res, next) => {
+    const { Task_plan, Task_notes, Task_id, Task_state, Task_name, Task_app_Acronym } = req.body
+    const Task_owner = req.username
+
+    //permission switch case
+    let newState
+    let appPermit
+    switch (Task_state) {
+        case "open":
+            return res.json({
+                unauth: "role"
+            })
+        case "todo":
+            newState = "open"
+            appPermit = "App_permit_toDoList"
+            break
+        case "doing":
+            newState = "todo"
+            appPermit = "App_permit_Doing"
+            break
+        case "done":
+            newState = "doing"
+            appPermit = "App_permit_Done"
+            break
+        case "closed":
+            newState = "done"
+            appPermit = "App_permit_Done"
+            break
+        default:
+            return res.json({
+                error: "Internal Server Error"
+            })
+    }
+    //find the user group with permission
+    const statePermit = await db.promise().query(`SELECT ${appPermit} FROM application WHERE App_Acronym = ?`, [Task_app_Acronym])
+    //check if user role matches app permits
+    const auth = await checkGroup(Task_owner, statePermit[0][0][appPermit])
+    if (!auth) {
+        return res.json({
+            success: false,
+            unauth: "role",
+            message: "Failed to promote task"
+        })
+    }
+    //comeback
+
+    //Creating note
+    //Get current Date + Time
+    function getCurrentDateTime() {
+        const now = new Date()
+        const day = String(now.getDate()).padStart(2, "0") // Get the day and pad with '0' if single digit
+        const month = String(now.getMonth() + 1).padStart(2, "0") // Get the month (months are 0-based) and pad
+        const year = now.getFullYear() // Get the full year
+        const hours = String(now.getHours()).padStart(2, "0") // Get the hours and pad with '0' if single digit
+        const minutes = String(now.getMinutes()).padStart(2, "0") // Get the minutes and pad
+        const seconds = String(now.getSeconds()).padStart(2, "0") // Get the seconds and pad
+        return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`
+    }
+    const currentDateTime = getCurrentDateTime()
+    // Fetch the previous notes from the database
+    const [previousNotes] = await db.promise().query("SELECT Task_notes FROM task WHERE Task_id = ?", [Task_id])
+    const previousNote = previousNotes[0].Task_notes || "" // Retrieve the previous notes
+    // Concatenate the new note with the previous notes on a new line
+    // Check if Task_notes is not empty before creating the new note
+    const newNote = `[${currentDateTime}] ${Task_owner} (${Task_state}): ${
+        Task_notes ? Task_notes : "Promoted Task"
+    }\n${previousNote}`
+
+    const result = await db
+        .promise()
+        .query("UPDATE task SET Task_plan = ?, Task_notes = ?, Task_owner = ?, Task_state =? WHERE Task_id = ?", [
+            Task_plan,
+            newNote,
+            Task_owner,
+            newState,
+            Task_id
+        ])
+    if (result[0].affectedRows === 0) {
+        // No rows were updated (no matching records found)
+        return res.status(404).json({
+            success: false,
+            message: "No edits are made"
+        })
+    }
+    return res.json({
+        success: true,
+        message: "Task demoted successfully",
         data: {
             Task_plan,
             Task_notes: newNote,
