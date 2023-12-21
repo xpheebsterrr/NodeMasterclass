@@ -28,7 +28,46 @@ exports.getApp = catchAsyncErrors(async (req, res, next) => {
     return
 })
 
-// Create App  =>  /api/v1/CreateApp
+// Get App Permit  =>  /api/v1/getAppPermit
+exports.getAppPermit = catchAsyncErrors(async (req, res, next) => {
+    const { Task_app_Acronym, Task_state } = req.body
+    //permission switch case
+    let appPermit
+    switch (Task_state) {
+        case "create":
+            appPermit = "App_permit_Create"
+            break
+        case "open":
+            appPermit = "App_permit_Open"
+            break
+        case "todo":
+            appPermit = "App_permit_toDoList"
+            break
+        case "doing":
+            appPermit = "App_permit_Doing"
+            break
+        case "done":
+            appPermit = "App_permit_Done"
+            break
+        // case "closed":
+        //     return res.json({
+        //         unauth: "role"
+        //     })
+        // default:
+        //     return res.json({
+        //         error: "Internal Server Error"
+        //     })
+    }
+    //find the user group with permission
+    const statePermit = await db.promise().query(`SELECT ${appPermit} FROM application WHERE App_Acronym = ?`, [Task_app_Acronym])
+    return res.json({
+        success: true,
+        message: "Retrieved app successfully",
+        data: statePermit[0][0][appPermit]
+    })
+})
+
+// Create App  =>  /api/v1/createApp
 exports.createApp = catchAsyncErrors(async (req, res, next) => {
     const {
         App_Acronym,
@@ -85,12 +124,11 @@ exports.createApp = catchAsyncErrors(async (req, res, next) => {
         )
     // Retrieve the newly created user
     const [app] = await db.promise().query("SELECT * FROM application WHERE App_Acronym = ?", [App_Acronym])
-    res.json({
+    return res.json({
         success: true,
         message: "App is created successfully",
         data: app[0]
     })
-    return
 })
 
 // Update App  =>  /api/v1/updateApp
@@ -161,12 +199,11 @@ exports.createPlan = catchAsyncErrors(async (req, res, next) => {
         ])
     // Retrieve the newly created user
     const [plan] = await db.promise().query("SELECT * FROM plan WHERE Plan_app_Acronym = ?", [Plan_app_Acronym])
-    res.json({
+    return res.json({
         success: true,
         message: "Plan is created successfully",
         data: plan[0]
     })
-    return
 })
 
 // Update Plan  =>  /api/v1/updatePlan
@@ -203,12 +240,11 @@ exports.updatePlan = catchAsyncErrors(async (req, res, next) => {
 exports.getPlans = catchAsyncErrors(async (req, res, next) => {
     const { Plan_app_Acronym } = req.body
     const data = await db.promise().query("SELECT * FROM plan WHERE Plan_app_Acronym = ?", [Plan_app_Acronym])
-    res.json({
+    return res.json({
         success: true,
         message: "Retrieved ${data[0].length} plans successfully",
         data: data[0]
     })
-    return
 })
 
 //For Tasks

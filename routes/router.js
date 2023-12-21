@@ -25,7 +25,8 @@ const {
     getApp,
     editTask,
     promoteTask,
-    demoteTask
+    demoteTask,
+    getAppPermit
 } = require("../controllers/appController")
 
 //Assignment 1
@@ -69,6 +70,8 @@ router.route("/createApp").post(createApp)
 router.route("/updateApp").put(updateApp)
 //get App
 router.route("/getApp").post(getApp)
+//get App Permit
+router.route("/getAppPermit").post(getAppPermit)
 
 //For Plans
 //create plan
