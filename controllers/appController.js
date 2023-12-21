@@ -10,7 +10,7 @@ exports.getApps = catchAsyncErrors(async (req, res, next) => {
     const data = await db.promise().query("SELECT * FROM application")
     res.json({
         success: true,
-        message: "Retrieved ${data[0].length} apps successfully",
+        message: `Retrieved ${data[0].length} apps successfully`,
         data: data[0]
     })
     return
@@ -22,7 +22,7 @@ exports.getApp = catchAsyncErrors(async (req, res, next) => {
     const data = await db.promise().query("SELECT * FROM application WHERE App_Acronym = ?", [App_Acronym])
     res.json({
         success: true,
-        message: "Retrieved app successfully",
+        message: `Retrieved app successfully`,
         data: data[0][0]
     })
     return
@@ -46,14 +46,14 @@ exports.createApp = catchAsyncErrors(async (req, res, next) => {
     if (!App_Acronym || App_Acronym.trim() === "") {
         return res.status(400).json({
             success: false,
-            message: "App Acronym is required."
+            message: `App Acronym is required.`
         })
     }
     //if no App_Rnumber
     if (!App_Rnumber || App_Rnumber.trim() === "") {
         return res.status(400).json({
             success: false,
-            message: "App Rnumber is required."
+            message: `App Rnumber is required.`
         })
     }
     // Check if the App already exists
@@ -87,7 +87,7 @@ exports.createApp = catchAsyncErrors(async (req, res, next) => {
     const [app] = await db.promise().query("SELECT * FROM application WHERE App_Acronym = ?", [App_Acronym])
     res.json({
         success: true,
-        message: "App is created successfully",
+        message: `App is created successfully`,
         data: app[0]
     })
     return
@@ -125,7 +125,7 @@ exports.updateApp = catchAsyncErrors(async (req, res, next) => {
 
     return res.json({
         success: true,
-        message: "App updated successfully",
+        message: `App updated successfully`,
         data: {
             App_Acronym,
             App_Description,
@@ -147,7 +147,7 @@ exports.createPlan = catchAsyncErrors(async (req, res, next) => {
     if (!Plan_MVP_name || Plan_MVP_name.trim() === "") {
         return res.status(400).json({
             success: false,
-            message: "Plan name is required."
+            message: `Plan name is required.`
         })
     }
     // Insert a new plan into the plans table
@@ -163,7 +163,7 @@ exports.createPlan = catchAsyncErrors(async (req, res, next) => {
     const [plan] = await db.promise().query("SELECT * FROM plan WHERE Plan_app_Acronym = ?", [Plan_app_Acronym])
     res.json({
         success: true,
-        message: "Plan is created successfully",
+        message: `Plan is created successfully`,
         data: plan[0]
     })
     return
@@ -184,12 +184,12 @@ exports.updatePlan = catchAsyncErrors(async (req, res, next) => {
         // No rows were updated (no matching records found)
         return res.status(404).json({
             success: false,
-            message: "No matching records found for update"
+            message: `No matching records found for update`
         })
     }
     return res.json({
         success: true,
-        message: "Plan updated successfully",
+        message: `Plan updated successfully`,
         data: {
             Plan_MVP_name,
             Plan_startDate,
@@ -205,7 +205,7 @@ exports.getPlans = catchAsyncErrors(async (req, res, next) => {
     const data = await db.promise().query("SELECT * FROM plan WHERE Plan_app_Acronym = ?", [Plan_app_Acronym])
     res.json({
         success: true,
-        message: "Retrieved ${data[0].length} plans successfully",
+        message: `Retrieved ${data[0].length} plans successfully`,
         data: data[0]
     })
     return
@@ -215,14 +215,25 @@ exports.getPlans = catchAsyncErrors(async (req, res, next) => {
 // Get all Tasks  =>  /api/v1/getTasks (named as api for clarity)
 exports.getTasks = catchAsyncErrors(async (req, res, next) => {
     const { Task_state, Task_app_Acronym } = req.body
-    const data = await db
+    if (Task_state === 'all') {
+        const data = await db
+        .promise()
+        .query("SELECT * FROM task WHERE Task_app_Acronym = ?", [Task_app_Acronym])
+    res.json({
+        success: true,
+        message: `Retrieved ${data[0].length} tasks in ${Task_state} states from ${Task_app_Acronym} successfully`,
+        data: data[0]
+    })
+    } else {
+        const data = await db
         .promise()
         .query("SELECT * FROM task WHERE Task_state = ? AND Task_app_Acronym = ?", [Task_state, Task_app_Acronym])
     res.json({
         success: true,
-        message: "Retrieved ${data[0].length} tasks in ${Task_state} state from ${Task_app_Acronym} successfully",
+        message: `Retrieved ${data[0].length} tasks in ${Task_state} state from ${Task_app_Acronym} successfully`,
         data: data[0]
     })
+    }
     return
 })
 // Create Task  =>  /api/v1/CreateTask
@@ -232,7 +243,7 @@ exports.createTask = catchAsyncErrors(async (req, res, next) => {
     if (!Task_name || Task_name.trim() === "") {
         return res.status(400).json({
             success: false,
-            message: "Task name is required."
+            message: `Task name is required.`
         })
     }
     //add createDate
@@ -280,7 +291,7 @@ exports.createTask = catchAsyncErrors(async (req, res, next) => {
     const [task] = await db.promise().query("SELECT * FROM task WHERE Task_id = ?", [Task_id])
     res.json({
         success: true,
-        message: "Task is created successfully",
+        message: `Task is created successfully`,
         data: task[0]
     })
     return
@@ -329,12 +340,12 @@ exports.editTask = catchAsyncErrors(async (req, res, next) => {
         // No rows were updated (no matching records found)
         return res.status(404).json({
             success: false,
-            message: "No edits are made"
+            message: `No edits are made`
         })
     }
     return res.json({
         success: true,
-        message: "Task updated successfully",
+        message: `Task updated successfully`,
         data: {
             Task_plan,
             Task_notes: newNote,
@@ -389,7 +400,7 @@ exports.promoteTask = catchAsyncErrors(async (req, res, next) => {
         return res.json({
             success: false,
             unauth: "role",
-            message: "Failed to promote task"
+            message: `Failed to promote task`
         })
     }
     //comeback
@@ -429,12 +440,12 @@ exports.promoteTask = catchAsyncErrors(async (req, res, next) => {
         // No rows were updated (no matching records found)
         return res.status(404).json({
             success: false,
-            message: "No edits are made"
+            message: `No edits are made`
         })
     }
     return res.json({
         success: true,
-        message: "Task promoted successfully",
+        message: `Task promoted successfully`,
         data: {
             Task_plan,
             Task_notes: newNote,
@@ -489,7 +500,7 @@ exports.demoteTask = catchAsyncErrors(async (req, res, next) => {
         return res.json({
             success: false,
             unauth: "role",
-            message: "Failed to promote task"
+            message: `Failed to promote task`
         })
     }
     //comeback
@@ -529,12 +540,12 @@ exports.demoteTask = catchAsyncErrors(async (req, res, next) => {
         // No rows were updated (no matching records found)
         return res.status(404).json({
             success: false,
-            message: "No edits are made"
+            message: `No edits are made`
         })
     }
     return res.json({
         success: true,
-        message: "Task demoted successfully",
+        message: `Task demoted successfully`,
         data: {
             Task_plan,
             Task_notes: newNote,
@@ -552,7 +563,7 @@ exports.updateUserEmail = catchAsyncErrors(async (req, res, next) => {
     const data = await db.promise().query("UPDATE accounts SET email = ? WHERE username = ?", [email, username])
     return res.json({
         success: true,
-        message: "Email updated successfully",
+        message: `Email updated successfully`,
         data: { username, email }
     })
 })
