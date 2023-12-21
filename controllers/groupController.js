@@ -28,7 +28,7 @@ exports.checkingGroup = async (req, res) => {
         return res.status(200).json({
             result: result,
             success: true,
-            message: `User ${username} is ${group}`
+            message: `User ${username} is in ${group}`
         })
     } catch (e) {
         res.status(500).json({

@@ -49,10 +49,10 @@ exports.getAppPermit = catchAsyncErrors(async (req, res, next) => {
         case "done":
             appPermit = "App_permit_Done"
             break
-        // case "closed":
-        //     return res.json({
-        //         unauth: "role"
-        //     })
+        case "closed":
+            return res.json({
+                unauth: "role"
+            })
         // default:
         //     return res.json({
         //         error: "Internal Server Error"
@@ -251,24 +251,22 @@ exports.getPlans = catchAsyncErrors(async (req, res, next) => {
 // Get all Tasks  =>  /api/v1/getTasks (named as api for clarity)
 exports.getTasks = catchAsyncErrors(async (req, res, next) => {
     const { Task_state, Task_app_Acronym } = req.body
-    if (Task_state === 'all') {
-        const data = await db
-        .promise()
-        .query("SELECT * FROM task WHERE Task_app_Acronym = ?", [Task_app_Acronym])
-    res.json({
-        success: true,
-        message: `Retrieved ${data[0].length} tasks in ${Task_state} states from ${Task_app_Acronym} successfully`,
-        data: data[0]
-    })
+    if (Task_state === "all") {
+        const data = await db.promise().query("SELECT * FROM task WHERE Task_app_Acronym = ?", [Task_app_Acronym])
+        res.json({
+            success: true,
+            message: `Retrieved ${data[0].length} tasks in ${Task_state} states from ${Task_app_Acronym} successfully`,
+            data: data[0]
+        })
     } else {
         const data = await db
-        .promise()
-        .query("SELECT * FROM task WHERE Task_state = ? AND Task_app_Acronym = ?", [Task_state, Task_app_Acronym])
-    res.json({
-        success: true,
-        message: `Retrieved ${data[0].length} tasks in ${Task_state} state from ${Task_app_Acronym} successfully`,
-        data: data[0]
-    })
+            .promise()
+            .query("SELECT * FROM task WHERE Task_state = ? AND Task_app_Acronym = ?", [Task_state, Task_app_Acronym])
+        res.json({
+            success: true,
+            message: `Retrieved ${data[0].length} tasks in ${Task_state} state from ${Task_app_Acronym} successfully`,
+            data: data[0]
+        })
     }
     return
 })
@@ -560,7 +558,7 @@ exports.demoteTask = catchAsyncErrors(async (req, res, next) => {
     // Concatenate the new note with the previous notes on a new line
     // Check if Task_notes is not empty before creating the new note
     const newNote = `[${currentDateTime}] ${Task_owner} (${Task_state}): ${
-        Task_notes ? Task_notes : "Promoted Task"
+        Task_notes ? Task_notes : "Demoted Task"
     }\n${previousNote}`
 
     const result = await db
