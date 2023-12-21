@@ -8,16 +8,19 @@ exports.isAuthenticated = catchAsyncErrors(async (req, res, next) => {
     const token = req.body.access_token // read the token from the cookie
     console.log("isAuthenticated", token)
     if (token == null) {
+        console.log("no token")
         return res.sendStatus(401) // if there isn't any token
     }
     try {
         const data = jwt.verify(token, process.env.JWT_SECRET)
         req.username = data.username
+        req.groupnames = data.groupnames
         const result = await db.promise().query("SELECT * FROM accounts WHERE username = ?", [req.username])
         req.userDetails = result[0][0]
-        //   if (req.userDetails.isActive === "disabled") {
-        //       return res.sendStatus(401) //user is disabled
-        //   }
+        if (req.userDetails.isActive === "disabled") {
+            console.log("unauthorised bc disabled")
+            return res.sendStatus(401) //user is disabled
+        }
         // req.groupnames = data.groupnames
         return next() // pass the execution off to whatever request the client intended
     } catch (e) {
@@ -70,6 +73,7 @@ exports.protectedAdmin = async (req, res, next) => {
         username != req.body.username && // requestor is not updating himself
         req.body.oldGroupnames.includes("admin") // requestor is trying to update another admin
     ) {
+        console.log("admin cannot edit other admins")
         res.json({
             success: false,
             message: "Error: Admins cannot update other admins."

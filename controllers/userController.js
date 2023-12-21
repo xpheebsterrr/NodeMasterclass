@@ -46,7 +46,7 @@ exports.getUser = catchAsyncErrors(async (req, res, next) => {
     res.json({
         success: true,
         message: "Retrieved user ${username} successfully",
-        data: data[0]
+        data: data[0][0]
     })
     return
 })
