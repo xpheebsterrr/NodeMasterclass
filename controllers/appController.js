@@ -4,6 +4,7 @@ const catchAsyncErrors = require("../middlewares/catchAsyncErrors")
 const db = require("../config/database")
 const jwt = require("jsonwebtoken")
 const { checkGroup } = require("./groupController")
+const sendEmail = require("./sendEmail")
 
 // Get all App  =>  /api/v1/getApp (named as api for clarity)
 exports.getApps = catchAsyncErrors(async (req, res, next) => {
@@ -458,7 +459,7 @@ exports.promoteTask = catchAsyncErrors(async (req, res, next) => {
     // Concatenate the new note with the previous notes on a new line
     // Check if Task_notes is not empty before creating the new note
     const newNote = `[${currentDateTime}] ${Task_owner} (${Task_state}): ${
-        Task_notes ? Task_notes : "Promoted Task"
+        Task_notes ? `Promoted: ${Task_notes}` : "Promoted Task"
     }\n${previousNote}`
 
     const result = await db
@@ -476,6 +477,20 @@ exports.promoteTask = catchAsyncErrors(async (req, res, next) => {
             success: false,
             message: `No edits are made`
         })
+    }
+    if (newState === "done") {
+        const text = "Task promoted to done"
+        sendEmail({
+            to: "user@tms.com",
+            subject: "Re: Another day another slayyy",
+            text
+        })
+            .then(() => {
+                console.log("sent email successfully")
+            })
+            .catch(error => {
+                console.log("error", error)
+            })
     }
     return res.json({
         success: true,
